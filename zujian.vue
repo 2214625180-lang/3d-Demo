@@ -14,12 +14,12 @@
   </div>
 </template>
 <script>
-import BedStatsCard from './components/cards/BedStatsCard.vue'
-import DepartmentDormBarChart from './components/cards/DepartmentDormBarChart.vue'
-import DepartmentDormTable from './components/cards/DepartmentDormTable.vue'
-import OccupancyStatusCard from './components/cards/OccupancyStatusCard.vue'
+import BedStatsCard from './components/cards/BedStatsCard/index.vue'
+import DepartmentDormBarChart from './components/cards/DepartmentDormBarChart/index.vue'
+import DepartmentDormTable from './components/cards/DepartmentDormTable/index.vue'
+import OccupancyStatusCard from './components/cards/OccupancyStatusCard/index.vue'
 import PersonnelFlowTrendCard from './components/cards/PersonnelFlowTrendCard.vue'
-import { createDormitoryMockData } from './data/statdata'
+import { createDormitoryMockData } from './data/statdata.js'
 export default {
   name: 'chart',
   components: {
@@ -79,10 +79,17 @@ export default {
   width: 698px;
 }
 
+.dorm-left-region .department-dorm-pair > .department-dorm-bar-chart.screen-card {
+  width: 340px !important;
+  height: 216px;
+}
+
 .department-dorm-pair__table {
   position: absolute;
   left: 358px;
   top: 0;
   z-index: 6;
+  width: 340px;
+  height: 216px;
 }
 </style>

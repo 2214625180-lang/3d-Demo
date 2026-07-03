@@ -5,6 +5,7 @@ import './preview.css'
 
 Vue.config.productionTip = false
 Vue.prototype.$echarts = echarts
+window.echarts = echarts
 
 new Vue({
   render: (h) => h('div', { class: 'preview-shell' }, [h(DormLeftRegion)]),
