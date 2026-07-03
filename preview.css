@@ -1,0 +1,25 @@
+html,
+body,
+#app {
+  width: 100%;
+  min-width: 1180px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: auto;
+  background:
+    radial-gradient(circle at 38% 38%, rgba(49, 134, 195, 0.2), transparent 32%),
+    linear-gradient(105deg, #061522 0%, #071a2a 27%, #03111f 62%, #061929 100%);
+}
+
+#app {
+  position: relative;
+  min-height: 1080px;
+}
+
+.preview-shell {
+  min-height: 1080px;
+  padding: 72px 0 80px 48px;
+}
