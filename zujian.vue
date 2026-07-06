@@ -18,7 +18,7 @@ import BedStatsCard from './components/cards/BedStatsCard/index.vue'
 import DepartmentDormBarChart from './components/cards/DepartmentDormBarChart/index.vue'
 import DepartmentDormTable from './components/cards/DepartmentDormTable/index.vue'
 import OccupancyStatusCard from './components/cards/OccupancyStatusCard/index.vue'
-import PersonnelFlowTrendCard from './components/cards/PersonnelFlowTrendCard.vue'
+import PersonnelFlowTrendCard from './components/cards/PersonnelFlowTrendCard/index.vue'
 import { createDormitoryMockData } from './data/statdata.js'
 export default {
   name: 'chart',

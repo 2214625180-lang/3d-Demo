@@ -55,87 +55,66 @@
 </template>
 
 <script>
-const defaultData = {
-  emptyRate: 15.7,
-  occupancyRate: 84.3,
-  maleCount: 1256,
-  femaleCount: 347,
-  monthlyData: [
-    { month: '1月', value: 125 },
-    { month: '2月', value: 178 },
-    { month: '3月', value: 146 },
-    { month: '4月', value: 138 },
-    { month: '5月', value: 201 },
-    { month: '6月', value: 164 },
-  ],
-}
-
-const requiredDepartmentTabs = [
-  { label: '盐城维信', value: 'weixin' },
-  { label: '超维微电子', value: 'chaowei' },
-  { label: '盐城索尔思', value: 'senersi' },
-  { label: '盐城光重', value: 'guangdian' },
-  { label: '管理公司', value: 'manage' },
-  { label: '盐城东仓', value: 'dongchuang' },
-]
-
-function toArray(value) {
-  return Array.isArray(value) ? value : []
-}
-
-function toSafeNumber(value, fallbackValue) {
-  const numberValue = Number(value)
-  return Number.isFinite(numberValue) ? numberValue : fallbackValue
-}
-
-function createVerticalGradient(colorStops) {
-  return {
-    type: 'linear',
-    x: 0,
-    y: 0,
-    x2: 0,
-    y2: 1,
-    colorStops,
-  }
-}
-
-function createTooltipConfig() {
-  return {
-    backgroundColor: 'rgba(5, 22, 42, 0.92)',
-    borderColor: 'rgba(95, 190, 255, 0.55)',
-    textStyle: {
-      color: '#d9f5ff',
-    },
-  }
-}
-
 export default {
   name: 'OccupancyStatusCard',
   props: {
     data: {
-      type: Object,
-      default: () => defaultData,
+      type: [Object, Array],
+      default: () => ({}),
     },
   },
   data() {
     return {
       chart: null,
+      localData: {},
+      fallbackData: {
+        emptyRate: 15.7,
+        occupancyRate: 84.3,
+        maleCount: 1256,
+        femaleCount: 347,
+        defaultDepartmentKey: 'weixin',
+        departmentTabs: [
+          { label: '盐城维信', value: 'weixin' },
+          { label: '超维微电子', value: 'chaowei' },
+          { label: '盐城索尔思', value: 'senersi' },
+          { label: '盐城光重', value: 'guangdian' },
+          { label: '管理公司', value: 'manage' },
+          { label: '盐城东仓', value: 'dongchuang' },
+        ],
+        monthlyData: [
+          { month: '1月', value: 125 },
+          { month: '2月', value: 178 },
+          { month: '3月', value: 146 },
+          { month: '4月', value: 138 },
+          { month: '5月', value: 201 },
+          { month: '6月', value: 164 },
+        ],
+      },
       echartsUnavailable: false,
       activeDepartmentKey: '',
     }
   },
   computed: {
     viewData() {
-      return this.data && Object.keys(this.data).length ? this.data : defaultData
+      if (this.isValidData(this.localData)) {
+        return this.localData
+      }
+
+      if (this.isValidData(this.data)) {
+        return this.data
+      }
+
+      return this.fallbackData
     },
     metrics() {
-      const legacyMetrics = this.viewData.metrics || {}
+      const sourceData = Array.isArray(this.viewData) ? this.fallbackData : this.viewData
+      const legacyMetrics = sourceData.metrics || {}
 
       return {
-        emptyRate: this.viewData.emptyRate != null ? this.viewData.emptyRate : legacyMetrics.vacancyRate,
-        occupancyRate: this.viewData.occupancyRate != null ? this.viewData.occupancyRate : legacyMetrics.occupancyRate,
-        maleCount: this.viewData.maleCount != null ? this.viewData.maleCount : legacyMetrics.maleCount,
-        femaleCount: this.viewData.femaleCount != null ? this.viewData.femaleCount : legacyMetrics.femaleCount,
+        emptyRate: sourceData.emptyRate != null ? sourceData.emptyRate : legacyMetrics.vacancyRate,
+        occupancyRate: sourceData.occupancyRate != null ? sourceData.occupancyRate : legacyMetrics.occupancyRate,
+        maleCount: sourceData.maleCount != null ? sourceData.maleCount : legacyMetrics.maleCount,
+        femaleCount: sourceData.femaleCount != null ? sourceData.femaleCount : legacyMetrics.femaleCount,
       }
     },
     metricRows() {
@@ -151,10 +130,15 @@ export default {
       ]
     },
     departmentTabs() {
-      return requiredDepartmentTabs
+      const sourceTabs = Array.isArray(this.viewData) ? [] : this.viewData.departmentTabs
+      const tabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value)
+
+      return tabs.length ? tabs : this.fallbackData.departmentTabs
     },
     normalizedDepartments() {
-      return toArray(this.viewData.departments).filter((department) => department && department.key)
+      const sourceDepartments = Array.isArray(this.viewData) ? [] : this.viewData.departments
+
+      return this.toArray(sourceDepartments).filter((department) => department && department.key)
     },
     activeDepartment() {
       return this.normalizedDepartments.find((department) => department.key === this.activeDepartmentKey) || null
@@ -162,21 +146,27 @@ export default {
     monthlyData() {
       const sourceData = this.activeDepartment && this.activeDepartment.monthlyStats
         ? this.activeDepartment.monthlyStats
-        : this.viewData.monthlyData
+        : Array.isArray(this.viewData)
+          ? this.fallbackData.monthlyData
+          : this.viewData.monthlyData
 
-      const normalizedData = toArray(sourceData)
+      const normalizedData = this.toArray(sourceData)
         .filter((item) => item && item.month)
         .map((item) => ({
           month: String(item.month),
-          value: toSafeNumber(item.value, 0),
+          value: this.toSafeNumber(item.value, 0),
         }))
 
-      return normalizedData.length ? normalizedData : defaultData.monthlyData
+      return normalizedData.length ? normalizedData : this.fallbackData.monthlyData
     },
   },
   mounted() {
     this.ensureActiveDepartment()
-    this.initChart && this.initChart()
+
+    this.$nextTick(() => {
+      this.initChart()
+    })
+
     window.addEventListener('resize', this.resizeChart)
   },
   beforeDestroy() {
@@ -193,16 +183,70 @@ export default {
       immediate: true,
       handler() {
         this.ensureActiveDepartment()
-        this.renderChart && this.renderChart()
+
+        this.$nextTick(() => {
+          this.renderChart()
+        })
       },
     },
+
+    localData: {
+      deep: true,
+      handler() {
+        this.ensureActiveDepartment()
+
+        this.$nextTick(() => {
+          this.renderChart()
+        })
+      },
+    },
+
     activeDepartmentKey() {
-      this.renderChart && this.renderChart()
+      this.$nextTick(() => {
+        this.renderChart()
+      })
     },
   },
   methods: {
     setdata(data) {
-      this.data = data
+      this.localData = this.isValidData(data) ? data : {}
+    },
+    isValidData(value) {
+      if (Array.isArray(value)) {
+        return value.length > 0
+      }
+
+      return (
+        value &&
+        typeof value === 'object' &&
+        Object.keys(value).length > 0
+      )
+    },
+    toArray(value) {
+      return Array.isArray(value) ? value : []
+    },
+    toSafeNumber(value, fallbackValue) {
+      const numberValue = Number(value)
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue
+    },
+    createVerticalGradient(colorStops) {
+      return {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: 0,
+        y2: 1,
+        colorStops,
+      }
+    },
+    createTooltipConfig() {
+      return {
+        backgroundColor: 'rgba(5, 22, 42, 0.92)',
+        borderColor: 'rgba(95, 190, 255, 0.55)',
+        textStyle: {
+          color: '#d9f5ff',
+        },
+      }
     },
     ensureActiveDepartment() {
       const preferredKey = this.activeDepartmentKey || this.viewData.defaultDepartmentKey
@@ -237,18 +281,27 @@ export default {
         return
       }
 
+      if (this.chart) {
+        this.chart.dispose()
+        this.chart = null
+      }
+
       this.echartsUnavailable = false
       this.chart = echarts.init(this.$refs.chartRef)
       this.renderChart()
     },
     renderChart() {
       if (!this.chart) {
-        this.$nextTick(this.initChart)
         return
       }
 
-      this.chart.setOption(this.buildChartOptions(), true)
-      this.resizeChart()
+      const option = this.getChartOption()
+
+      if (!option) {
+        return
+      }
+
+      this.chart.setOption(option, true)
     },
     resizeChart() {
       if (this.chart) {
@@ -266,14 +319,14 @@ export default {
 
       return String(value)
     },
-    buildChartOptions() {
+    getChartOption() {
       const stats = this.monthlyData
-      const blueBarGradient = createVerticalGradient([
+      const blueBarGradient = this.createVerticalGradient([
         { offset: 0, color: '#73dcff' },
         { offset: 0.22, color: '#4ec8ff' },
         { offset: 1, color: 'rgba(42, 128, 178, 0.28)' },
       ])
-      const yellowBarGradient = createVerticalGradient([
+      const yellowBarGradient = this.createVerticalGradient([
         { offset: 0, color: '#ffe176' },
         { offset: 0.24, color: '#ffd054' },
         { offset: 1, color: 'rgba(176, 139, 52, 0.26)' },
@@ -309,7 +362,7 @@ export default {
           axisPointer: {
             type: 'shadow',
           },
-        }, createTooltipConfig()),
+        }, this.createTooltipConfig()),
         xAxis: {
           type: 'category',
           data: stats.map((item) => item.month),
@@ -352,7 +405,7 @@ export default {
             barGap: '-100%',
             z: 2,
             data: stats.map((item, index) => ({
-              value: toSafeNumber(item.value, 0),
+              value: this.toSafeNumber(item.value, 0),
               itemStyle: {
                 color: index % 2 === 0 ? blueBarGradient : yellowBarGradient,
               },
@@ -376,7 +429,7 @@ export default {
             },
             z: 3,
             data: stats.map((item, index) => ({
-              value: toSafeNumber(item.value, 0),
+              value: this.toSafeNumber(item.value, 0),
               itemStyle: {
                 color: index % 2 === 0 ? '#8ee8ff' : '#ffe585',
                 shadowBlur: 0,

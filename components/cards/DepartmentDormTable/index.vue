@@ -58,50 +58,12 @@
 </template>
 
 <script>
-const defaultData = [
-  { building: 'A栋', weixin: 318, chaowei: 318, senersi: 318, guangdian: 318, dongchuang: 318, guanli: 318 },
-  { building: 'B栋', weixin: 276, chaowei: 276, senersi: 276, guangdian: 276, dongchuang: 276, guanli: 276 },
-  { building: 'C栋', weixin: 224, chaowei: 224, senersi: 224, guangdian: 224, dongchuang: 224, guanli: 224 },
-]
-
-const defaultTabs = [
-  { label: '横条图', value: 'bar' },
-  { label: '楼栋表格', value: 'table' },
-]
-
-const defaultDepartments = [
-  { key: 'weixin', label: '维信' },
-  { key: 'chaowei', label: '超维' },
-  { key: 'senersi', label: '条尔思' },
-  { key: 'guangdian', label: '光电' },
-  { key: 'dongchuang', label: '东创' },
-  { key: 'guanli', label: '管理' },
-]
-
-const legacyDepartmentKeyMap = {
-  manage: 'guanli',
-  guanli: 'guanli',
-}
-
-function toArray(value) {
-  return Array.isArray(value) ? value : []
-}
-
-function toSafeNumber(value, fallbackValue) {
-  const numberValue = Number(value)
-  return Number.isFinite(numberValue) ? numberValue : fallbackValue
-}
-
-function formatNumber(value) {
-  return toSafeNumber(value, 0).toLocaleString('en-US')
-}
-
 export default {
   name: 'DepartmentDormTable',
   props: {
     data: {
-      type: [Array, Object],
-      default: () => defaultData,
+      type: [Object, Array],
+      default: () => ({}),
     },
     activeView: {
       type: String,
@@ -111,48 +73,69 @@ export default {
   data() {
     return {
       chart: null,
+      localData: {},
+      fallbackData: {
+        defaultView: 'table',
+        tabs: [
+          { label: '横条图', value: 'bar' },
+          { label: '楼栋表格', value: 'table' },
+        ],
+        departments: [
+          { key: 'weixin', label: '维信' },
+          { key: 'chaowei', label: '超维' },
+          { key: 'senersi', label: '条尔思' },
+          { key: 'guangdian', label: '光电' },
+          { key: 'dongchuang', label: '东创' },
+          { key: 'guanli', label: '管理' },
+        ],
+        rows: [
+          { building: 'A栋', weixin: 318, chaowei: 318, senersi: 318, guangdian: 318, dongchuang: 318, guanli: 318 },
+          { building: 'B栋', weixin: 276, chaowei: 276, senersi: 276, guangdian: 276, dongchuang: 276, guanli: 276 },
+          { building: 'C栋', weixin: 224, chaowei: 224, senersi: 224, guangdian: 224, dongchuang: 224, guanli: 224 },
+        ],
+      },
     }
   },
   computed: {
     viewData() {
-      if (Array.isArray(this.data) && this.data.length) {
+      if (this.isValidData(this.localData)) {
+        return this.localData
+      }
+
+      if (this.isValidData(this.data)) {
         return this.data
       }
 
-      if (this.data && Object.keys(this.data).length) {
-        return this.data
-      }
-
-      return defaultData
+      return this.fallbackData
     },
     departments() {
       if (Array.isArray(this.viewData)) {
-        return defaultDepartments
+        return this.fallbackData.departments
       }
 
-      const departments = toArray(this.viewData.departments)
+      const departments = this.toArray(this.viewData.departments)
         .filter((department) => department && department.key)
         .map((department) => ({
-          key: legacyDepartmentKeyMap[department.key] || department.key,
+          key: this.getCanonicalDepartmentKey(department.key),
           sourceKey: department.key,
           label: department.label || department.key,
         }))
 
-      return departments.length ? departments : defaultDepartments
+      return departments.length ? departments : this.fallbackData.departments
     },
     rows() {
       const sourceRows = Array.isArray(this.viewData) ? this.viewData : this.viewData.rows
-      const rows = toArray(sourceRows)
+      const rows = this.toArray(sourceRows)
         .filter((row) => row && row.building)
         .map((row) => this.normalizeRow(row))
 
-      return rows.length ? rows : defaultData.map((row) => this.normalizeRow(row))
+      return rows.length ? rows : this.fallbackData.rows.map((row) => this.normalizeRow(row))
     },
     tabs() {
-      const sourceTabs = Array.isArray(this.viewData) ? defaultTabs : this.viewData.tabs
-      const tabs = toArray(sourceTabs).filter((tab) => tab && tab.value)
+      const sourceTabs = Array.isArray(this.viewData) ? this.fallbackData.tabs : this.viewData.tabs
+      const tabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value)
 
-      return tabs.length ? tabs : defaultTabs
+      return tabs.length ? tabs : this.fallbackData.tabs
     },
     gridStyle() {
       return {
@@ -160,34 +143,38 @@ export default {
       }
     },
   },
-  mounted() {
-    this.initChart && this.initChart()
-    window.addEventListener('resize', this.resizeChart)
-  },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.resizeChart)
-
-    if (this.chart) {
-      this.chart.dispose()
-      this.chart = null
-    }
-  },
-  watch: {
-    data: {
-      deep: true,
-      handler() {
-        this.renderChart && this.renderChart()
-      },
-    },
-  },
   methods: {
     setdata(data) {
-      this.data = data
+      this.localData = this.isValidData(data) ? data : {}
     },
-    resizeChart() {
-      if (this.chart) {
-        this.chart.resize()
+    isValidData(value) {
+      if (Array.isArray(value)) {
+        return value.length > 0
       }
+
+      return (
+        value &&
+        typeof value === 'object' &&
+        Object.keys(value).length > 0
+      )
+    },
+    toArray(value) {
+      return Array.isArray(value) ? value : []
+    },
+    toSafeNumber(value, fallbackValue) {
+      const numberValue = Number(value)
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue
+    },
+    formatNumber(value) {
+      return this.toSafeNumber(value, 0).toLocaleString('en-US')
+    },
+    getCanonicalDepartmentKey(key) {
+      const legacyDepartmentKeyMap = {
+        manage: 'guanli',
+        guanli: 'guanli',
+      }
+
+      return legacyDepartmentKeyMap[key] || key
     },
     normalizeRow(row) {
       const values = row.values && typeof row.values === 'object' ? row.values : row
@@ -198,10 +185,10 @@ export default {
 
       this.departments.forEach((department) => {
         const sourceKey = department.sourceKey || department.key
-        const mappedKey = legacyDepartmentKeyMap[sourceKey] || sourceKey
+        const mappedKey = this.getCanonicalDepartmentKey(sourceKey)
         const value = values[sourceKey] != null ? values[sourceKey] : values[mappedKey]
 
-        normalizedRow.values[department.key] = toSafeNumber(value, 0)
+        normalizedRow.values[department.key] = this.toSafeNumber(value, 0)
       })
 
       return normalizedRow
@@ -211,7 +198,7 @@ export default {
         return '0'
       }
 
-      return formatNumber(row.values[department.key])
+      return this.formatNumber(row.values[department.key])
     },
   },
 }
