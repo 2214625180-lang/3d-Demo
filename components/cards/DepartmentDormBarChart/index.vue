@@ -1,5 +1,9 @@
 <template>
-  <div class="department-dorm-bar-chart screen-card" data-drag-component="DepartmentDormBarChart">
+  <div
+    class="department-dorm-bar-chart screen-card"
+    :style="cardStyle"
+    data-drag-component="DepartmentDormBarChart"
+  >
     <div class="dorm-card-title dorm-card-title--department">
       <span class="dorm-card-title__image" aria-hidden="true"></span>
       <span class="dorm-card-title__text">事业部在宿人数</span>
@@ -29,103 +33,102 @@
 </template>
 
 <script>
-const defaultData = [
-  { name: '盐城维信', value: 1246 },
-  { name: '超维微电子', value: 1083 },
-  { name: '盐城森尔思', value: 874 },
-  { name: '盐城光电', value: 779 },
-  { name: '盐城东创', value: 668 },
-]
-
-const defaultTabs = [
-  { label: '横条图', value: 'bar' },
-  { label: '楼栋表格', value: 'table' },
-]
-
-function toArray(value) {
-  return Array.isArray(value) ? value : []
-}
-
-function toSafeNumber(value, fallbackValue) {
-  const numberValue = Number(value)
-  return Number.isFinite(numberValue) ? numberValue : fallbackValue
-}
-
-function formatNumber(value) {
-  return toSafeNumber(value, 0).toLocaleString('en-US')
-}
-
-function createHorizontalGradient(colorStops) {
-  return {
-    type: 'linear',
-    x: 0,
-    y: 0,
-    x2: 1,
-    y2: 0,
-    colorStops,
-  }
-}
-
-function createTooltipConfig() {
-  return {
-    backgroundColor: 'rgba(5, 22, 42, 0.92)',
-    borderColor: 'rgba(95, 190, 255, 0.55)',
-    textStyle: {
-      color: '#d9f5ff',
-    },
-  }
-}
-
+import SOURCEHANSANSCNREGULAR from 'fonts/SOURCEHANSANSCN-REGULAR.otf&&SourceHanSansCN-Regular';
+import Ica62726aa6224a06ae374e60add716dc from 'img/fa480ed204844c9b92771be2feff6e43.png'
+import I9ae5937b3192469793e18e2f394b7a36 from 'img/d22281f561c2499d9d4e706e714c454e.png'
+import Idb1b215b19e645179250f52eed9bff50 from 'img/49a49a4c4c184393ab02f949a5b09fee.png'
 export default {
   name: 'DepartmentDormBarChart',
   props: {
     data: {
       type: [Array, Object],
-      default: () => defaultData,
+      default: () => [],
     },
   },
   data() {
     return {
       chart: null,
+      localData: [],
+      fallbackData: [
+        { name: '盐城维信', value: 1246 },
+        { name: '超维微电子', value: 1083 },
+        { name: '盐城森尔思', value: 874 },
+        { name: '盐城光电', value: 779 },
+        { name: '盐城东创', value: 668 },
+      ],
+      fallbackTabs: [
+        { label: '横条图', value: 'bar' },
+        { label: '楼栋表格', value: 'table' },
+      ],
+      assets: {
+        headerFrameBg: I9ae5937b3192469793e18e2f394b7a36,
+        titleBg: Idb1b215b19e645179250f52eed9bff50,
+        tabButtonBg: Ica62726aa6224a06ae374e60add716dc,
+      },
+      resizeObserver: null,
       echartsUnavailable: false,
       activeView: 'bar',
     }
   },
   computed: {
+    cardStyle() {
+      return {
+        '--department-card-frame-bg': `url(${this.assets.headerFrameBg})`,
+        '--department-card-title-bg': `url(${this.assets.titleBg})`,
+        '--department-card-tab-bg': `url(${this.assets.tabButtonBg})`,
+      }
+    },
     viewData() {
+      if (Array.isArray(this.localData) && this.localData.length) {
+        return this.localData
+      }
+
+      if (
+        this.localData &&
+        !Array.isArray(this.localData) &&
+        Object.keys(this.localData).length
+      ) {
+        return this.localData
+      }
+
       if (Array.isArray(this.data) && this.data.length) {
         return this.data
       }
 
-      if (this.data && Object.keys(this.data).length) {
+      if (this.data && !Array.isArray(this.data) && Object.keys(this.data).length) {
         return this.data
       }
 
-      return defaultData
+      return this.fallbackData
     },
     chartItems() {
       const sourceItems = Array.isArray(this.viewData) ? this.viewData : this.viewData.items
 
-      return toArray(sourceItems)
+      return this.toArray(sourceItems)
         .filter((item) => item && item.name)
         .map((item) => ({
           name: String(item.name),
-          value: toSafeNumber(item.value, 0),
+          value: this.toSafeNumber(item.value, 0),
         }))
     },
     tabs() {
-      const sourceTabs = Array.isArray(this.viewData) ? defaultTabs : this.viewData.tabs
-      const normalizedTabs = toArray(sourceTabs).filter((tab) => tab && tab.value)
+      const sourceTabs = Array.isArray(this.viewData) ? this.fallbackTabs : this.viewData.tabs
+      const normalizedTabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value)
 
-      return normalizedTabs.length ? normalizedTabs : defaultTabs
+      return normalizedTabs.length ? normalizedTabs : this.fallbackTabs
     },
   },
   mounted() {
-    this.initChart && this.initChart()
+    this.$nextTick(() => {
+      this.initChart()
+      this.initResizeObserver()
+    })
+
     window.addEventListener('resize', this.resizeChart)
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.resizeChart)
+    this.destroyResizeObserver()
 
     if (this.chart) {
       this.chart.dispose()
@@ -136,19 +139,56 @@ export default {
     data: {
       deep: true,
       handler() {
-        this.renderChart && this.renderChart()
+        this.renderChart()
+      },
+    },
+    localData: {
+      deep: true,
+      handler() {
+        this.renderChart()
       },
     },
     chartItems: {
       deep: true,
       handler() {
-        this.renderChart && this.renderChart()
+        this.renderChart()
       },
     },
   },
   methods: {
     setdata(data) {
-      this.data = data && (Array.isArray(data) || typeof data === 'object') ? data : defaultData
+      this.localData = data && (Array.isArray(data) || typeof data === 'object')
+        ? data
+        : []
+    },
+    toArray(value) {
+      return Array.isArray(value) ? value : []
+    },
+    toSafeNumber(value, fallbackValue) {
+      const numberValue = Number(value)
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue
+    },
+    formatNumber(value) {
+      return this.toSafeNumber(value, 0).toLocaleString('en-US')
+    },
+    createHorizontalGradient(colorStops) {
+      return {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: 1,
+        y2: 0,
+        colorStops,
+      }
+    },
+    createTooltipConfig() {
+      return {
+        backgroundColor: 'rgba(5, 22, 42, 0.92)',
+        borderColor: 'rgba(95, 190, 255, 0.55)',
+        textStyle: {
+          color: '#d9f5ff',
+        },
+      }
     },
     getECharts() {
       if (typeof window !== 'undefined' && window.echarts && window.echarts.init) {
@@ -170,17 +210,21 @@ export default {
         return
       }
 
+      if (this.chart) {
+        this.chart.dispose()
+        this.chart = null
+      }
+
       this.echartsUnavailable = false
       this.chart = echarts.init(this.$refs.chartRef)
       this.renderChart()
     },
     renderChart() {
       if (!this.chart) {
-        this.$nextTick(this.initChart)
         return
       }
 
-      this.chart.setOption(this.buildChartOptions(), true)
+      this.chart.setOption(this.getChartOption(), true)
       this.resizeChart()
     },
     resizeChart() {
@@ -188,20 +232,40 @@ export default {
         this.chart.resize()
       }
     },
-    buildChartOptions() {
-      const rankingItems = this.chartItems.length ? this.chartItems : defaultData
-      const maxValue = rankingItems.reduce((max, item) => Math.max(max, toSafeNumber(item.value, 0)), 0)
+    initResizeObserver() {
+      if (typeof ResizeObserver === 'undefined' || !this.$el) {
+        return
+      }
+
+      this.resizeObserver = new ResizeObserver(() => {
+        this.resizeChart()
+      })
+
+      this.resizeObserver.observe(this.$el)
+    },
+    destroyResizeObserver() {
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect()
+        this.resizeObserver = null
+      }
+    },
+    getChartOption() {
+      const rankingItems = this.chartItems.length ? this.chartItems : this.fallbackData
+      const maxValue = rankingItems.reduce((max, item) => {
+        return Math.max(max, this.toSafeNumber(item.value, 0))
+      }, 0)
       const backgroundValue = Math.max(10, Math.ceil(maxValue * 1.08))
-      const topProgressGradient = createHorizontalGradient([
+      const topProgressGradient = this.createHorizontalGradient([
         { offset: 0, color: 'rgba(56, 176, 232, 0.46)' },
         { offset: 0.52, color: '#55cfff' },
         { offset: 1, color: '#b6f4ff' },
       ])
-      const normalProgressGradient = createHorizontalGradient([
+      const normalProgressGradient = this.createHorizontalGradient([
         { offset: 0, color: 'rgba(45, 149, 210, 0.46)' },
         { offset: 0.58, color: '#3fb5ec' },
         { offset: 1, color: '#86e0ff' },
       ])
+      const vm = this
 
       return {
         backgroundColor: 'transparent',
@@ -211,12 +275,13 @@ export default {
           bottom: 8,
           left: 82,
         },
-        tooltip: Object.assign({
+        tooltip: {
           trigger: 'axis',
           axisPointer: {
             type: 'shadow',
           },
-        }, createTooltipConfig()),
+          ...this.createTooltipConfig(),
+        },
         xAxis: {
           type: 'value',
           max: Math.ceil(backgroundValue * 1.08),
@@ -288,7 +353,7 @@ export default {
               fontWeight: 600,
               distance: 8,
               formatter(params) {
-                return formatNumber(params.value)
+                return vm.formatNumber(params.value)
               },
             },
             itemStyle: {
@@ -299,7 +364,7 @@ export default {
             },
             z: 2,
             data: rankingItems.map((item, index) => ({
-              value: toSafeNumber(item.value, 0),
+              value: this.toSafeNumber(item.value, 0),
               itemStyle: {
                 color: index < 3 ? topProgressGradient : normalProgressGradient,
               },
@@ -328,9 +393,18 @@ export default {
   padding: 12px 10px 11px;
   overflow: hidden;
   color: #d9f3ff;
-  font-family: "Microsoft YaHei", Arial, sans-serif;
+  font-family:
+    "SourceHanSansCN-Regular",
+    "Microsoft YaHei",
+    Arial,
+    sans-serif;
   background:
-    linear-gradient(135deg, rgba(58, 136, 194, 0.16), rgba(5, 18, 38, 0.74) 42%, rgba(4, 24, 47, 0.86)),
+    linear-gradient(
+      135deg,
+      rgba(58, 136, 194, 0.16),
+      rgba(5, 18, 38, 0.74) 42%,
+      rgba(4, 24, 47, 0.86)
+    ),
     rgba(6, 24, 48, 0.72);
   border: 1px solid rgba(92, 183, 245, 0.38);
   border-radius: 4px;
@@ -347,7 +421,7 @@ export default {
   width: 347px;
   height: 51px;
   pointer-events: none;
-  background-image: url("../../../assets/编组 12@2x.png");
+  background-image: var(--department-card-frame-bg);
   background-repeat: no-repeat;
   background-size: 347px 51px;
   border: 0;
@@ -385,7 +459,7 @@ export default {
 .dorm-card-title--department .dorm-card-title__image {
   width: 137px;
   height: 21px;
-  background-image: url("../../../assets/事业部在宿人数@2x(1).png");
+  background-image: var(--department-card-title-bg);
 }
 
 .department-bar-card {
@@ -464,7 +538,7 @@ export default {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url("../../../assets/组合2396.png");
+  background-image: var(--department-card-tab-bg);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
@@ -492,7 +566,12 @@ export default {
 .dorm-base-echart {
   position: relative;
   width: 100%;
+  height: 100%;
   min-height: 56px;
+}
+
+.department-bar-card__chart.dorm-base-echart {
+  height: 122px;
 }
 
 .dorm-base-echart__canvas {

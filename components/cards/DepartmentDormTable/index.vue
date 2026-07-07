@@ -1,12 +1,18 @@
 <template>
-  <div class="department-dorm-table screen-card" data-drag-component="DepartmentDormTable">
+  <div
+    class="department-dorm-table screen-card"
+    :style="cardStyle"
+    data-drag-component="DepartmentDormTable"
+  >
     <div class="dorm-card-title dorm-card-title--department">
       <span class="dorm-card-title__image" aria-hidden="true"></span>
       <span class="dorm-card-title__text">事业部在宿人数</span>
     </div>
 
     <div class="department-table-card">
-      <div class="department-table-card__tabs dorm-chart-tabs dorm-chart-tabs--small">
+      <div
+        class="department-table-card__tabs dorm-chart-tabs dorm-chart-tabs--small"
+      >
         <button
           v-for="tab in tabs"
           :key="tab.value"
@@ -18,39 +24,42 @@
         </button>
       </div>
 
-      <div class="dorm-building-grid" role="table" aria-label="事业部在宿人数楼栋表格">
-        <div class="dorm-building-grid__header" :style="gridStyle" role="row">
-          <span class="dorm-building-grid__cell" role="columnheader">楼栋</span>
-          <span
-            v-for="department in departments"
-            :key="department.key"
-            class="dorm-building-grid__cell"
-            role="columnheader"
-          >
-            {{ department.label }}
-          </span>
+      <div
+        class="department-dorm-table__table-panel"
+        role="table"
+        aria-label="事业部在宿人数楼栋表格"
+      >
+        <div
+          class="department-dorm-table__table-header table-bg-header"
+          role="row"
+        >
+          <div class="department-dorm-table__cell" role="columnheader">楼栋</div>
+          <div class="department-dorm-table__cell" role="columnheader">维信</div>
+          <div class="department-dorm-table__cell" role="columnheader">超维</div>
+          <div class="department-dorm-table__cell" role="columnheader">条尔思</div>
+          <div class="department-dorm-table__cell" role="columnheader">光电</div>
+          <div class="department-dorm-table__cell" role="columnheader">东创</div>
+          <div class="department-dorm-table__cell" role="columnheader">管理</div>
         </div>
 
-        <div class="dorm-building-grid__body" role="rowgroup">
+        <div
+          v-for="row in tableRows"
+          :key="row.building"
+          class="department-dorm-table__table-row table-bg-body"
+          role="row"
+        >
           <div
-            v-for="row in rows"
-            :key="row.building"
-            class="dorm-building-grid__row"
-            :style="gridStyle"
-            role="row"
+            class="department-dorm-table__cell department-dorm-table__building"
+            role="cell"
           >
-            <span class="dorm-building-grid__cell dorm-building-grid__building" role="cell">
-              {{ row.building }}
-            </span>
-            <span
-              v-for="department in departments"
-              :key="department.key"
-              class="dorm-building-grid__cell"
-              role="cell"
-            >
-              {{ getBuildingValue(row, department) }}
-            </span>
+            {{ row.building }}
           </div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.weixin }}</div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.chaowei }}</div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.senersi }}</div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.guangdian }}</div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.dongchuang }}</div>
+          <div class="department-dorm-table__cell" role="cell">{{ row.guanli }}</div>
         </div>
       </div>
     </div>
@@ -58,6 +67,13 @@
 </template>
 
 <script>
+import I9ae5937b3192469793e18e2f394b7a36 from 'img/d22281f561c2499d9d4e706e714c454e.png';
+import Idb1b215b19e645179250f52eed9bff50 from 'img/49a49a4c4c184393ab02f949a5b09fee.png';
+import Ica62726aa6224a06ae374e60add716dc from 'img/fa480ed204844c9b92771be2feff6e43.png';
+import I5ab1a2264e84423d9b72cdff5ebfd660 from 'img/2f1c8a2a4c884f1ba0f2ef7e95467428.png';
+import I508e8126325b4925be4a8059436b8cef from 'img/2a835d5990b24e9088081cd189bc4b1a.png';
+import SOURCEHANSANSCNREGULAR from 'fonts/SOURCEHANSANSCN-REGULAR.otf&&SourceHanSansCN-Regular';
+
 export default {
   name: 'DepartmentDormTable',
   props: {
@@ -74,43 +90,83 @@ export default {
     return {
       chart: null,
       localData: {},
+      fallbackTabs: [
+        { label: '横条图', value: 'bar' },
+        { label: '楼栋表格', value: 'table' },
+      ],
       fallbackData: {
-        defaultView: 'table',
-        tabs: [
-          { label: '横条图', value: 'bar' },
-          { label: '楼栋表格', value: 'table' },
-        ],
         departments: [
           { key: 'weixin', label: '维信' },
           { key: 'chaowei', label: '超维' },
-          { key: 'senersi', label: '条尔思' },
+          { key: 'senersi', label: '索尔思' },
           { key: 'guangdian', label: '光电' },
           { key: 'dongchuang', label: '东创' },
           { key: 'guanli', label: '管理' },
         ],
         rows: [
-          { building: 'A栋', weixin: 318, chaowei: 318, senersi: 318, guangdian: 318, dongchuang: 318, guanli: 318 },
-          { building: 'B栋', weixin: 276, chaowei: 276, senersi: 276, guangdian: 276, dongchuang: 276, guanli: 276 },
-          { building: 'C栋', weixin: 224, chaowei: 224, senersi: 224, guangdian: 224, dongchuang: 224, guanli: 224 },
+          {
+            building: 'A栋',
+            weixin: 318,
+            chaowei: 318,
+            senersi: 318,
+            guangdian: 318,
+            dongchuang: 318,
+            guanli: 318,
+          },
+          {
+            building: 'B栋',
+            weixin: 276,
+            chaowei: 276,
+            senersi: 276,
+            guangdian: 276,
+            dongchuang: 276,
+            guanli: 276,
+          },
+          {
+            building: 'C栋',
+            weixin: 224,
+            chaowei: 224,
+            senersi: 224,
+            guangdian: 224,
+            dongchuang: 224,
+            guanli: 224,
+          },
         ],
       },
-    }
+      assets: {
+        headerFrameBg: I9ae5937b3192469793e18e2f394b7a36,
+        titleBg: Idb1b215b19e645179250f52eed9bff50,
+        tabButtonBg: Ica62726aa6224a06ae374e60add716dc,
+        tableBodyRowBg: I5ab1a2264e84423d9b72cdff5ebfd660,
+        tableHeaderRowBg: I508e8126325b4925be4a8059436b8cef,
+      },
+      resizeObserver: null,
+    };
   },
   computed: {
+    cardStyle() {
+      return {
+        '--department-table-frame-bg': `url(${this.assets.headerFrameBg})`,
+        '--department-table-title-bg': `url(${this.assets.titleBg})`,
+        '--department-table-tab-bg': `url(${this.assets.tabButtonBg})`,
+        '--department-table-header-row-bg': `url(${this.assets.tableHeaderRowBg})`,
+        '--department-table-body-row-bg': `url(${this.assets.tableBodyRowBg})`,
+      };
+    },
     viewData() {
       if (this.isValidData(this.localData)) {
-        return this.localData
+        return this.localData;
       }
 
       if (this.isValidData(this.data)) {
-        return this.data
+        return this.data;
       }
 
-      return this.fallbackData
+      return this.fallbackData;
     },
     departments() {
       if (Array.isArray(this.viewData)) {
-        return this.fallbackData.departments
+        return this.fallbackData.departments;
       }
 
       const departments = this.toArray(this.viewData.departments)
@@ -119,91 +175,95 @@ export default {
           key: this.getCanonicalDepartmentKey(department.key),
           sourceKey: department.key,
           label: department.label || department.key,
-        }))
+        }));
 
-      return departments.length ? departments : this.fallbackData.departments
+      return departments.length ? departments : this.fallbackData.departments;
     },
     rows() {
-      const sourceRows = Array.isArray(this.viewData) ? this.viewData : this.viewData.rows
+      const sourceRows = Array.isArray(this.viewData)
+        ? this.viewData
+        : this.viewData.rows;
       const rows = this.toArray(sourceRows)
         .filter((row) => row && row.building)
-        .map((row) => this.normalizeRow(row))
+        .map((row) => this.normalizeRow(row));
 
-      return rows.length ? rows : this.fallbackData.rows.map((row) => this.normalizeRow(row))
+      return rows.length
+        ? rows
+        : this.fallbackData.rows.map((row) => this.normalizeRow(row));
+    },
+    tableRows() {
+      return this.rows.map((row) => {
+        const values = row && row.values ? row.values : {};
+
+        return {
+          building: row && row.building ? row.building : '',
+          weixin: this.formatNumber(values.weixin),
+          chaowei: this.formatNumber(values.chaowei),
+          senersi: this.formatNumber(values.senersi),
+          guangdian: this.formatNumber(values.guangdian),
+          dongchuang: this.formatNumber(values.dongchuang),
+          guanli: this.formatNumber(values.guanli),
+        };
+      });
     },
     tabs() {
-      const sourceTabs = Array.isArray(this.viewData) ? this.fallbackData.tabs : this.viewData.tabs
-      const tabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value)
+      const sourceTabs = Array.isArray(this.viewData)
+        ? this.fallbackTabs
+        : this.viewData.tabs;
+      const tabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value);
 
-      return tabs.length ? tabs : this.fallbackData.tabs
-    },
-    gridStyle() {
-      return {
-        gridTemplateColumns: `44px repeat(${this.departments.length}, minmax(0, 1fr))`,
-      }
+      return tabs.length ? tabs : this.fallbackTabs;
     },
   },
   methods: {
     setdata(data) {
-      this.localData = this.isValidData(data) ? data : {}
+      this.localData = this.isValidData(data) ? data : {};
     },
     isValidData(value) {
       if (Array.isArray(value)) {
-        return value.length > 0
+        return value.length > 0;
       }
-
       return (
-        value &&
-        typeof value === 'object' &&
-        Object.keys(value).length > 0
-      )
+        value && typeof value === 'object' && Object.keys(value).length > 0
+      );
     },
     toArray(value) {
-      return Array.isArray(value) ? value : []
+      return Array.isArray(value) ? value : [];
     },
     toSafeNumber(value, fallbackValue) {
-      const numberValue = Number(value)
-      return Number.isFinite(numberValue) ? numberValue : fallbackValue
+      const numberValue = Number(value);
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue;
     },
     formatNumber(value) {
-      return this.toSafeNumber(value, 0).toLocaleString('en-US')
+      return this.toSafeNumber(value, 0).toLocaleString('en-US');
     },
     getCanonicalDepartmentKey(key) {
       const legacyDepartmentKeyMap = {
         manage: 'guanli',
         guanli: 'guanli',
-      }
-
-      return legacyDepartmentKeyMap[key] || key
+      };
+      return legacyDepartmentKeyMap[key] || key;
     },
     normalizeRow(row) {
-      const values = row.values && typeof row.values === 'object' ? row.values : row
+      const values =
+        row.values && typeof row.values === 'object' ? row.values : row;
       const normalizedRow = {
         building: row.building,
         values: {},
-      }
-
+      };
       this.departments.forEach((department) => {
-        const sourceKey = department.sourceKey || department.key
-        const mappedKey = this.getCanonicalDepartmentKey(sourceKey)
-        const value = values[sourceKey] != null ? values[sourceKey] : values[mappedKey]
+        const sourceKey = department.sourceKey || department.key;
+        const mappedKey = this.getCanonicalDepartmentKey(sourceKey);
+        const value =
+          values[sourceKey] != null ? values[sourceKey] : values[mappedKey];
 
-        normalizedRow.values[department.key] = this.toSafeNumber(value, 0)
-      })
-
-      return normalizedRow
-    },
-    getBuildingValue(row, department) {
-      if (!row || !row.values || !department) {
-        return '0'
-      }
-
-      return this.formatNumber(row.values[department.key])
+        normalizedRow.values[department.key] = this.toSafeNumber(value, 0);
+      });
+      return normalizedRow;
     },
   },
-}
+};
 </script>
-
 <style scoped>
 .department-dorm-table,
 .department-dorm-table *,
@@ -220,26 +280,28 @@ export default {
   padding: 12px 10px 11px;
   overflow: hidden;
   color: #d9f3ff;
-  font-family: "Microsoft YaHei", Arial, sans-serif;
-  background:
-    linear-gradient(135deg, rgba(58, 136, 194, 0.16), rgba(5, 18, 38, 0.74) 42%, rgba(4, 24, 47, 0.86)),
-    rgba(6, 24, 48, 0.72);
-  border: 1px solid rgba(92, 183, 245, 0.38);
+  font-family: 'SourceHanSansCN-Regular', 'Microsoft YaHei', Arial, sans-serif;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 32, 58, 0.72),
+    rgba(4, 22, 42, 0.52)
+  );
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(92, 183, 245, 0.24);
   border-radius: 4px;
-  box-shadow:
-    0 0 22px rgba(23, 145, 231, 0.28),
-    inset 0 0 18px rgba(71, 178, 252, 0.16);
+  box-shadow: 0 0 14px rgba(23, 145, 231, 0.16),
+    inset 0 0 12px rgba(71, 178, 252, 0.08);
 }
 
 .department-dorm-table.screen-card::before {
-  content: "";
+  content: '';
   position: absolute;
   left: -1px;
   top: 0;
   width: 347px;
   height: 51px;
   pointer-events: none;
-  background-image: url("../../../assets/编组 12@2x.png");
+  background-image: var(--department-table-frame-bg);
   background-repeat: no-repeat;
   background-size: 347px 51px;
   border: 0;
@@ -277,12 +339,13 @@ export default {
 .dorm-card-title--department .dorm-card-title__image {
   width: 137px;
   height: 21px;
-  background-image: url("../../../assets/事业部在宿人数@2x(1).png");
+  background-image: var(--department-table-title-bg);
 }
 
 .department-table-card {
   position: relative;
   z-index: 1;
+  height: calc(100% - 33px);
   min-height: 158px;
 }
 
@@ -295,7 +358,7 @@ export default {
 
 .department-table-card__tabs {
   gap: 4px;
-  margin: 2px 0 8px;
+  margin: 2px 0 0;
 }
 
 .dorm-chart-tabs__button {
@@ -317,10 +380,13 @@ export default {
 
 .dorm-chart-tabs__button.is-active {
   color: #fff7ce;
-  background: linear-gradient(180deg, rgba(96, 110, 84, 0.72), rgba(42, 77, 103, 0.88));
+  background: linear-gradient(
+    180deg,
+    rgba(96, 110, 84, 0.72),
+    rgba(42, 77, 103, 0.88)
+  );
   border-color: rgba(255, 212, 106, 0.62);
-  box-shadow:
-    inset 0 0 12px rgba(255, 210, 95, 0.16),
+  box-shadow: inset 0 0 12px rgba(255, 210, 95, 0.16),
     0 0 10px rgba(74, 178, 255, 0.22);
 }
 
@@ -328,91 +394,94 @@ export default {
   height: 20px;
   min-width: 54px;
   padding: 0 7px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 18px;
 }
 
 .department-table-card__tabs .dorm-chart-tabs__button {
   position: relative;
-  width: 74px;
-  min-width: 74px;
-  height: 20px;
-  padding: 0;
+  width: auto;
+  min-width: 78px;
+  height: 30px;
+  padding: 0 14px;
   overflow: hidden;
   color: rgba(223, 241, 255, 0.9);
   font-size: 12px;
   font-weight: 500;
-  line-height: 20px;
-  background: rgba(8, 30, 52, 0.45);
-  border: 1px solid rgba(118, 187, 232, 0.36);
+  line-height: 28px;
+  background: rgba(18, 48, 76, 0.36);
+  border: 1px solid rgba(160, 215, 255, 0.38);
   border-radius: 0;
-  box-shadow: inset 0 0 8px rgba(66, 160, 220, 0.1);
+  box-shadow: inset 0 0 8px rgba(80, 180, 255, 0.1);
   text-shadow: 0 0 6px rgba(78, 176, 238, 0.28);
 }
 
 .department-table-card__tabs .dorm-chart-tabs__button::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url("../../../assets/组合2396.png");
+  background-image: var(--department-table-tab-bg);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
-  opacity: 0.32;
-  filter: saturate(0.45) brightness(0.58);
+  opacity: 0.18;
+  filter: saturate(0.45) brightness(0.72);
 }
 
 .department-table-card__tabs .dorm-chart-tabs__button.is-active {
-  color: #fff7cd;
-  background-color: transparent;
-  border-color: transparent;
-  box-shadow: none;
+  color: #fff2b8;
+  background: rgba(140, 122, 62, 0.34);
+  border-color: rgba(244, 217, 110, 0.58);
+  box-shadow: inset 0 0 10px rgba(255, 224, 116, 0.2),
+    0 0 6px rgba(255, 224, 116, 0.12);
   text-shadow: 0 0 6px rgba(255, 224, 121, 0.32);
 }
 
 .department-table-card__tabs .dorm-chart-tabs__button.is-active::before {
-  opacity: 1;
-  filter: none;
+  opacity: 0.42;
+  filter: brightness(0.95) saturate(0.9);
 }
 
-.dorm-building-grid {
-  width: 100%;
-  padding: 0;
-  overflow: hidden;
-  background: transparent;
-  border: 0;
+.department-dorm-table__table-panel {
+  position: absolute;
+    left: 2%;
+    right: 5%;
+    top: 21%;
+    display: flex;
+    flex-direction: column;
 }
 
-.dorm-building-grid__header,
-.dorm-building-grid__row {
+.department-dorm-table__table-header,
+.department-dorm-table__table-row {
   display: grid;
+  grid-template-columns: 1.05fr repeat(6, 1fr);
   align-items: center;
   width: 100%;
+  box-sizing: border-box;
+  background-color: rgba(8, 35, 64, 0.22);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
+  background-blend-mode: normal;
+  border: none;
+  box-shadow: none;
 }
 
-.dorm-building-grid__header {
-  height: 19px;
-  background-image: url("../../../assets/frame24.png");
+.department-dorm-table__table-header {
+  height: 34px;
+  background-image: var(--department-table-header-row-bg);
+  opacity: 0;
 }
 
-.dorm-building-grid__body {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin-top: 2px;
+.department-dorm-table__table-row {
+  height: 40px;
+  background-image: var(--department-table-body-row-bg);
+  opacity: 0;
 }
 
-.dorm-building-grid__row {
-  height: 28px;
-  background-image: url("../../../assets/frame.png");
-}
-
-.dorm-building-grid__cell {
+.department-dorm-table__cell {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -420,25 +489,27 @@ export default {
   height: 100%;
   padding: 0 2px;
   overflow: hidden;
-  color: rgba(226, 242, 255, 0.92);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
   text-align: center;
   white-space: nowrap;
   text-shadow: none;
 }
 
-.dorm-building-grid__header .dorm-building-grid__cell {
-  color: rgba(226, 242, 255, 0.92);
-  font-size: 12px;
+.department-dorm-table__table-header .department-dorm-table__cell {
+  color: rgba(104, 220, 255, 0.92);
+  font-size: 14px;
   font-weight: 500;
-  text-shadow: none;
+  line-height: 1;
 }
 
-.dorm-building-grid__building {
-  color: rgba(226, 242, 255, 0.92);
+.department-dorm-table__table-row .department-dorm-table__cell {
+  color: rgba(236, 248, 255, 0.92);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.department-dorm-table__building {
+  color: rgba(245, 251, 255, 0.96);
   font-weight: 500;
-  text-shadow: none;
 }
 </style>

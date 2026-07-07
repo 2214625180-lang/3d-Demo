@@ -1,5 +1,5 @@
 <template>
-  <div class="bed-stats-card screen-card" data-drag-component="BedStatsCard">
+  <div class="bed-stats-card screen-card" :style="cardStyle" data-drag-component="BedStatsCard">
     <div class="dorm-card-title dorm-card-title--bed-stats">
       <span class="dorm-card-title__image" aria-hidden="true"></span>
       <span class="dorm-card-title__text">床位统计概览</span>
@@ -66,47 +66,75 @@
 </template>
 
 <script>
-const defaultData = {
-  totalBeds: 4860,
-  validBeds: 4660,
-  usedBeds: 3986,
-  emptyBeds: 742,
-}
-
-function toSafeNumber(value, fallbackValue) {
-  const numberValue = Number(value)
-  return Number.isFinite(numberValue) ? numberValue : fallbackValue
-}
+import SourceHanSansCN_Medium from 'fonts/SourceHanSansCN_Medium.otf&&SourceHanSansCN-Medium';
+import I9ae5937b3192469793e18e2f394b7a36 from 'img/d22281f561c2499d9d4e706e714c454e.png'
+import Ia4d7b4b83bbd42519386d9e08f07cc02 from 'img/8f55db10004f4df28aaae4b986fb536b.png'
+import I1d1fdb36f20242bdbee1018bbc8a8124 from 'img/3af0cd04af09458d9a19045f30c999da.png'
+import If026d3c28c934ed98bb84aa24dda9a2a from 'img/441858f9b7cb4868956f2a1339de2729.png'
+import I08c842aa71c049a7b4997bdb48204fb7 from 'img/3daaf360a54d4613badf6e8229b5414e.png'
+import SOURCEHANSANSCNREGULAR from 'fonts/SOURCEHANSANSCN-REGULAR.otf&&SourceHanSansCN-Regular';
 
 export default {
   name: 'BedStatsCard',
   props: {
     data: {
       type: Object,
-      default: () => defaultData,
+      default: () => ({}),
     },
   },
   data() {
     return {
       chart: null,
+      localData: {},
+      fallbackData: {
+        totalBeds: 4860,
+        validBeds: 4660,
+        usedBeds: 3986,
+        emptyBeds: 742,
+      },
+      assets: {
+        frameBg: I9ae5937b3192469793e18e2f394b7a36,
+        titleBg: Ia4d7b4b83bbd42519386d9e08f07cc02,
+        middleBg: I1d1fdb36f20242bdbee1018bbc8a8124,
+        summaryBg: If026d3c28c934ed98bb84aa24dda9a2a,
+        arrowBg: I08c842aa71c049a7b4997bdb48204fb7,
+      },
     }
   },
   computed: {
+    cardStyle() {
+      return {
+        '--bed-stats-frame-bg': `url("${this.assets.frameBg}")`,
+        '--bed-stats-title-bg': `url("${this.assets.titleBg}")`,
+        '--bed-stats-middle-bg': `url("${this.assets.middleBg}")`,
+        '--bed-stats-summary-bg': `url("${this.assets.summaryBg}")`,
+        '--bed-stats-arrow-bg': `url("${this.assets.arrowBg}")`,
+      }
+    },
     viewData() {
-      return this.data && Object.keys(this.data).length ? this.data : defaultData
+      if (this.isValidData(this.localData)) {
+        return this.localData
+      }
+
+      if (this.isValidData(this.data)) {
+        return this.data
+      }
+
+      return this.fallbackData
     },
     totalBeds() {
-      return toSafeNumber(this.viewData.totalBeds, 0)
+      return this.toSafeNumber(this.viewData.totalBeds, 0)
     },
     validBeds() {
-      return toSafeNumber(this.viewData.validBeds, 0)
+      return this.toSafeNumber(this.viewData.validBeds, 0)
     },
     usedBeds() {
-      const sourceValue = this.viewData.usedBeds != null ? this.viewData.usedBeds : this.viewData.occupiedBeds
-      return toSafeNumber(sourceValue, 0)
+      const sourceValue = this.viewData.usedBeds != null
+       ? this.viewData.usedBeds : this.viewData.occupiedBeds
+      return this.toSafeNumber(sourceValue, 0)
     },
     emptyBeds() {
-      return toSafeNumber(this.viewData.emptyBeds, 0)
+      return this.toSafeNumber(this.viewData.emptyBeds, 0)
     },
     summaryMetrics() {
       return [
@@ -137,7 +165,14 @@ export default {
   },
   methods: {
     setdata(data) {
-      this.data = data && typeof data === 'object' ? data : {}
+      this.localData = data && typeof data === 'object' ? data : {}
+    },
+    isValidData(data) {
+      return data && typeof data === 'object' && Object.keys(data).length > 0
+    },
+    toSafeNumber(value, fallbackValue) {
+      const numberValue = Number(value)
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue
     },
     resizeChart() {
       if (this.chart) {
@@ -145,7 +180,7 @@ export default {
       }
     },
     formatBedValue(value) {
-      return toSafeNumber(value, 0).toLocaleString('en-US')
+      return this.toSafeNumber(value, 0).toLocaleString('en-US')
     },
   },
 }
@@ -186,7 +221,7 @@ export default {
   width: 347px;
   height: 51px;
   pointer-events: none;
-  background-image: url("../../../assets/编组 12@2x.png");
+  background-image: var(--bed-stats-frame-bg);
   background-repeat: no-repeat;
   background-size: 347px 51px;
   border: 0;
@@ -203,13 +238,21 @@ export default {
 }
 
 .dorm-card-title__image {
+  position: relative;
   flex: 0 0 auto;
   display: block;
   margin-left: 24px;
+  filter: drop-shadow(0 0 7px rgba(102, 195, 255, 0.6));
+}
+
+.dorm-card-title__image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background-repeat: no-repeat;
   background-position: left center;
   background-size: contain;
-  filter: drop-shadow(0 0 7px rgba(102, 195, 255, 0.6));
 }
 
 .dorm-card-title__text {
@@ -224,7 +267,10 @@ export default {
 .dorm-card-title--bed-stats .dorm-card-title__image {
   width: 115px;
   height: 15px;
-  background-image: url("../../../assets/床位统计概览@2x.png");
+}
+
+.dorm-card-title--bed-stats .dorm-card-title__image::before {
+  background-image: var(--bed-stats-title-bg);
 }
 
 .bed-stats-card__body {
@@ -248,12 +294,20 @@ export default {
   height: 38px;
   min-height: 0;
   padding: 0;
-  background-image: url("../../../assets/house.png");
+  border: 0;
+  box-shadow: none;
+}
+
+.bed-stats-card__summary-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--bed-stats-summary-bg);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
-  border: 0;
-  box-shadow: none;
 }
 
 .bed-stats-card__summary-item--total {
@@ -353,11 +407,17 @@ export default {
   max-width: 308px;
   height: 118px;
   pointer-events: none;
-  background-image: url("../../../assets/编组(1).png");
+  opacity: 0.9;
+}
+
+.bed-stats-card__middle-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--bed-stats-middle-bg);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
-  opacity: 0.9;
 }
 
 .bed-stats-card__visual {
@@ -510,12 +570,23 @@ export default {
 }
 
 .bed-info-arrow {
+  position: relative;
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
   margin-right: 7px;
   align-self: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.bed-info-arrow::before {
+  position: absolute;
+  inset: 0;
+  background-image: var(--bed-stats-arrow-bg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .bed-info-label {

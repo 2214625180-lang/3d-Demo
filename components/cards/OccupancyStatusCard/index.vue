@@ -1,5 +1,9 @@
 <template>
-  <div class="occupancy-status-card screen-card" data-drag-component="OccupancyStatusCard">
+  <div
+    class="occupancy-status-card screen-card"
+    :style="cardStyle"
+    data-drag-component="OccupancyStatusCard"
+  >
     <div class="dorm-card-title dorm-card-title--occupancy">
       <span class="dorm-card-title__image" aria-hidden="true"></span>
       <span class="dorm-card-title__text">人员入住情况</span>
@@ -16,22 +20,32 @@
             'occupancy-card__metric-row--secondary': rowIndex === 1,
           }"
         >
-          <span class="occupancy-card__metric-label occupancy-card__metric-label--left occupancy-text">
+          <span
+            class="occupancy-card__metric-label occupancy-card__metric-label--left occupancy-text"
+          >
             {{ row.left.label }}
           </span>
-          <strong class="occupancy-card__metric-value occupancy-card__metric-value--left occupancy-text">
+          <strong
+            class="occupancy-card__metric-value occupancy-card__metric-value--left occupancy-text"
+          >
             {{ formatMetricValue(row.left.value, row.left.type) }}
           </strong>
-          <span class="occupancy-card__metric-label occupancy-card__metric-label--right occupancy-text">
+          <span
+            class="occupancy-card__metric-label occupancy-card__metric-label--right occupancy-text"
+          >
             {{ row.right.label }}
           </span>
-          <strong class="occupancy-card__metric-value occupancy-card__metric-value--right occupancy-text">
+          <strong
+            class="occupancy-card__metric-value occupancy-card__metric-value--right occupancy-text"
+          >
             {{ formatMetricValue(row.right.value, row.right.type) }}
           </strong>
         </div>
       </div>
 
-      <div class="occupancy-card__tabs occupancy-tab dorm-chart-tabs dorm-chart-tabs--wrap">
+      <div
+        class="occupancy-card__tabs occupancy-tab dorm-chart-tabs dorm-chart-tabs--wrap"
+      >
         <button
           v-for="tab in departmentTabs"
           :key="tab.value"
@@ -55,6 +69,14 @@
 </template>
 
 <script>
+import I24e02e9331ac445ca6905fca48a4504b from 'img/4e8c4f732ab44ff9ad4e53fbb3fb311b.png';
+import echarts543minjs from 'lib/echarts.5.4.3.min';
+import SOURCEHANSANSCNREGULAR from 'fonts/SOURCEHANSANSCN-REGULAR.otf&&SourceHanSansCN-Regular';
+import I9ae5937b3192469793e18e2f394b7a36 from 'img/d22281f561c2499d9d4e706e714c454e.png';
+import Ic14de890c36e4f069fddc2356938ad87 from 'img/78afc299b43341e6b442644f8e8cbdf0.png';
+import I9d5c4ee7e9ff499c95d584f44143c1af from 'img/3319f30e800247aa81c07f07483d2d67.png';
+import Ica62726aa6224a06ae374e60add716dc from 'img/fa480ed204844c9b92771be2feff6e43.png';
+
 export default {
   name: 'OccupancyStatusCard',
   props: {
@@ -68,113 +90,244 @@ export default {
       chart: null,
       localData: {},
       fallbackData: {
-        emptyRate: 15.7,
-        occupancyRate: 84.3,
-        maleCount: 1256,
-        femaleCount: 347,
-        defaultDepartmentKey: 'weixin',
-        departmentTabs: [
+        activeDepartment: '盐城维信',
+        departments: [
           { label: '盐城维信', value: 'weixin' },
           { label: '超维微电子', value: 'chaowei' },
-          { label: '盐城索尔思', value: 'senersi' },
-          { label: '盐城光重', value: 'guangdian' },
-          { label: '管理公司', value: 'manage' },
-          { label: '盐城东仓', value: 'dongchuang' },
+          { label: '盐城索尔思', value: 'suosi' },
+          { label: '盐城光重', value: 'guangzhong' },
+          { label: '管理公司', value: 'guanli' },
+          { label: '盐城东仓', value: 'dongcang' },
         ],
-        monthlyData: [
-          { month: '1月', value: 125 },
-          { month: '2月', value: 178 },
-          { month: '3月', value: 146 },
-          { month: '4月', value: 138 },
-          { month: '5月', value: 201 },
-          { month: '6月', value: 164 },
-        ],
+        departmentStatsMap: {
+          weixin: {
+            emptyRate: 15.7,
+            occupancyRate: 84.3,
+            maleCount: 1256,
+            femaleCount: 347,
+            monthlyData: [
+              { month: '1月', value: 120 },
+              { month: '2月', value: 260 },
+              { month: '3月', value: 180 },
+              { month: '4月', value: 150 },
+              { month: '5月', value: 300 },
+              { month: '6月', value: 220 },
+            ],
+          },
+          chaowei: {
+            emptyRate: 18.2,
+            occupancyRate: 81.8,
+            maleCount: 1080,
+            femaleCount: 298,
+            monthlyData: [
+              { month: '1月', value: 100 },
+              { month: '2月', value: 220 },
+              { month: '3月', value: 160 },
+              { month: '4月', value: 190 },
+              { month: '5月', value: 260 },
+              { month: '6月', value: 210 },
+            ],
+          },
+          suosi: {
+            emptyRate: 20.1,
+            occupancyRate: 79.9,
+            maleCount: 920,
+            femaleCount: 265,
+            monthlyData: [
+              { month: '1月', value: 90 },
+              { month: '2月', value: 180 },
+              { month: '3月', value: 140 },
+              { month: '4月', value: 120 },
+              { month: '5月', value: 230 },
+              { month: '6月', value: 170 },
+            ],
+          },
+          guangzhong: {
+            emptyRate: 12.6,
+            occupancyRate: 87.4,
+            maleCount: 760,
+            femaleCount: 218,
+            monthlyData: [
+              { month: '1月', value: 130 },
+              { month: '2月', value: 240 },
+              { month: '3月', value: 190 },
+              { month: '4月', value: 160 },
+              { month: '5月', value: 280 },
+              { month: '6月', value: 230 },
+            ],
+          },
+          guanli: {
+            emptyRate: 10.8,
+            occupancyRate: 89.2,
+            maleCount: 420,
+            femaleCount: 188,
+            monthlyData: [
+              { month: '1月', value: 80 },
+              { month: '2月', value: 140 },
+              { month: '3月', value: 120 },
+              { month: '4月', value: 100 },
+              { month: '5月', value: 160 },
+              { month: '6月', value: 150 },
+            ],
+          },
+          dongcang: {
+            emptyRate: 16.4,
+            occupancyRate: 83.6,
+            maleCount: 850,
+            femaleCount: 236,
+            monthlyData: [
+              { month: '1月', value: 110 },
+              { month: '2月', value: 210 },
+              { month: '3月', value: 170 },
+              { month: '4月', value: 150 },
+              { month: '5月', value: 250 },
+              { month: '6月', value: 200 },
+            ],
+          },
+        },
       },
+      assets: {
+        headerFrameBg: I9ae5937b3192469793e18e2f394b7a36,
+        titleBg: Ic14de890c36e4f069fddc2356938ad87,
+        metricRowBg: I9d5c4ee7e9ff499c95d584f44143c1af,
+        tabButtonBg: Ica62726aa6224a06ae374e60add716dc,
+      },
+      resizeObserver: null,
       echartsUnavailable: false,
-      activeDepartmentKey: '',
-    }
+      activeDepartment: 'weixin',
+    };
   },
   computed: {
+    cardStyle() {
+      return {
+        '--occupancy-card-frame-bg': `url(${this.assets.headerFrameBg})`,
+        '--occupancy-card-title-bg': `url(${this.assets.titleBg})`,
+        '--occupancy-card-metric-bg': `url(${this.assets.metricRowBg})`,
+        '--occupancy-card-tab-bg': `url(${this.assets.tabButtonBg})`,
+      };
+    },
     viewData() {
       if (this.isValidData(this.localData)) {
-        return this.localData
+        return this.localData;
       }
 
       if (this.isValidData(this.data)) {
-        return this.data
+        return this.data;
       }
 
-      return this.fallbackData
+      return this.fallbackData;
     },
     metrics() {
-      const sourceData = Array.isArray(this.viewData) ? this.fallbackData : this.viewData
-      const legacyMetrics = sourceData.metrics || {}
-
       return {
-        emptyRate: sourceData.emptyRate != null ? sourceData.emptyRate : legacyMetrics.vacancyRate,
-        occupancyRate: sourceData.occupancyRate != null ? sourceData.occupancyRate : legacyMetrics.occupancyRate,
-        maleCount: sourceData.maleCount != null ? sourceData.maleCount : legacyMetrics.maleCount,
-        femaleCount: sourceData.femaleCount != null ? sourceData.femaleCount : legacyMetrics.femaleCount,
-      }
+        emptyRate: this.currentDepartmentStats.emptyRate,
+        occupancyRate: this.currentDepartmentStats.occupancyRate,
+        maleCount: this.currentDepartmentStats.maleCount,
+        femaleCount: this.currentDepartmentStats.femaleCount,
+      };
     },
     metricRows() {
       return [
         {
-          left: { label: '置空率', value: this.metrics.emptyRate, type: 'rate' },
-          right: { label: '入住率', value: this.metrics.occupancyRate, type: 'rate' },
+          left: {
+            label: '置空率',
+            value: this.metrics.emptyRate,
+            type: 'rate',
+          },
+          right: {
+            label: '入住率',
+            value: this.metrics.occupancyRate,
+            type: 'rate',
+          },
         },
         {
-          left: { label: '男生人数', value: this.metrics.maleCount, type: 'number' },
-          right: { label: '女生人数', value: this.metrics.femaleCount, type: 'number' },
+          left: {
+            label: '男生人数',
+            value: this.metrics.maleCount,
+            type: 'number',
+          },
+          right: {
+            label: '女生人数',
+            value: this.metrics.femaleCount,
+            type: 'number',
+          },
         },
-      ]
+      ];
+    },
+    departments() {
+      const sourceDepartments = Array.isArray(this.viewData)
+        ? []
+        : this.viewData.departments;
+      const departments = this.toArray(sourceDepartments).filter((item) => {
+        return item && item.label && item.value;
+      });
+
+      return departments.length ? departments : this.fallbackData.departments;
     },
     departmentTabs() {
-      const sourceTabs = Array.isArray(this.viewData) ? [] : this.viewData.departmentTabs
-      const tabs = this.toArray(sourceTabs).filter((tab) => tab && tab.value)
-
-      return tabs.length ? tabs : this.fallbackData.departmentTabs
+      return this.departments;
     },
-    normalizedDepartments() {
-      const sourceDepartments = Array.isArray(this.viewData) ? [] : this.viewData.departments
-
-      return this.toArray(sourceDepartments).filter((department) => department && department.key)
+    activeDepartmentKey() {
+      return this.activeDepartment;
     },
-    activeDepartment() {
-      return this.normalizedDepartments.find((department) => department.key === this.activeDepartmentKey) || null
+    departmentStatsMap() {
+      const sourceStatsMap = Array.isArray(this.viewData)
+        ? null
+        : this.viewData.departmentStatsMap;
+
+      if (
+        sourceStatsMap &&
+        typeof sourceStatsMap === 'object' &&
+        Object.keys(sourceStatsMap).length
+      ) {
+        return sourceStatsMap;
+      }
+
+      return this.fallbackData.departmentStatsMap;
+    },
+    currentDepartmentStats() {
+      const activeDepartment = this.getDepartmentValue(this.activeDepartment);
+      const fallbackDepartment = this.departments[0]
+        ? this.departments[0].value
+        : '';
+
+      return (
+        this.departmentStatsMap[activeDepartment] ||
+        this.departmentStatsMap[fallbackDepartment] ||
+        {}
+      );
     },
     monthlyData() {
-      const sourceData = this.activeDepartment && this.activeDepartment.monthlyStats
-        ? this.activeDepartment.monthlyStats
-        : Array.isArray(this.viewData)
-          ? this.fallbackData.monthlyData
-          : this.viewData.monthlyData
-
-      const normalizedData = this.toArray(sourceData)
+      const normalizedData = this.toArray(this.currentDepartmentStats.monthlyData)
         .filter((item) => item && item.month)
         .map((item) => ({
           month: String(item.month),
           value: this.toSafeNumber(item.value, 0),
-        }))
+        }));
 
-      return normalizedData.length ? normalizedData : this.fallbackData.monthlyData
+      if (normalizedData.length) {
+        return normalizedData;
+      }
+
+      return this.toArray(this.fallbackData.departmentStatsMap.weixin.monthlyData);
     },
   },
   mounted() {
-    this.ensureActiveDepartment()
+    this.ensureActiveDepartment();
 
     this.$nextTick(() => {
-      this.initChart()
-    })
+      this.initChart();
+      this.initResizeObserver();
+    });
 
-    window.addEventListener('resize', this.resizeChart)
+    window.addEventListener('resize', this.resizeChart);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.resizeChart)
+    window.removeEventListener('resize', this.resizeChart);
+    this.destroyResizeObserver();
 
     if (this.chart) {
-      this.chart.dispose()
-      this.chart = null
+      this.chart.dispose();
+      this.chart = null;
     }
   },
   watch: {
@@ -182,52 +335,45 @@ export default {
       deep: true,
       immediate: true,
       handler() {
-        this.ensureActiveDepartment()
+        this.ensureActiveDepartment();
 
         this.$nextTick(() => {
-          this.renderChart()
-        })
+          this.renderChart();
+        });
       },
     },
 
     localData: {
       deep: true,
       handler() {
-        this.ensureActiveDepartment()
+        this.ensureActiveDepartment();
 
         this.$nextTick(() => {
-          this.renderChart()
-        })
+          this.renderChart();
+        });
       },
     },
 
-    activeDepartmentKey() {
-      this.$nextTick(() => {
-        this.renderChart()
-      })
-    },
   },
   methods: {
     setdata(data) {
-      this.localData = this.isValidData(data) ? data : {}
+      this.localData = this.isValidData(data) ? data : {};
     },
     isValidData(value) {
       if (Array.isArray(value)) {
-        return value.length > 0
+        return value.length > 0;
       }
 
       return (
-        value &&
-        typeof value === 'object' &&
-        Object.keys(value).length > 0
-      )
+        value && typeof value === 'object' && Object.keys(value).length > 0
+      );
     },
     toArray(value) {
-      return Array.isArray(value) ? value : []
+      return Array.isArray(value) ? value : [];
     },
     toSafeNumber(value, fallbackValue) {
-      const numberValue = Number(value)
-      return Number.isFinite(numberValue) ? numberValue : fallbackValue
+      const numberValue = Number(value);
+      return Number.isFinite(numberValue) ? numberValue : fallbackValue;
     },
     createVerticalGradient(colorStops) {
       return {
@@ -237,7 +383,7 @@ export default {
         x2: 0,
         y2: 1,
         colorStops,
-      }
+      };
     },
     createTooltipConfig() {
       return {
@@ -246,91 +392,147 @@ export default {
         textStyle: {
           color: '#d9f5ff',
         },
+      };
+    },
+    getDepartmentValue(department) {
+      if (!department) {
+        return '';
       }
+
+      const departmentValue = String(department);
+      const matchedDepartment = this.departments.find((item) => {
+        return item.value === departmentValue || item.label === departmentValue;
+      });
+
+      return matchedDepartment ? matchedDepartment.value : departmentValue;
     },
     ensureActiveDepartment() {
-      const preferredKey = this.activeDepartmentKey || this.viewData.defaultDepartmentKey
-      const hasPreferredTab = this.departmentTabs.some((tab) => tab.value === preferredKey)
+      const viewDepartment = Array.isArray(this.viewData)
+        ? ''
+        : this.viewData.activeDepartment;
+      const preferredDepartment = this.getDepartmentValue(
+        viewDepartment || this.activeDepartment
+      );
+      const fallbackDepartment = this.departments[0]
+        ? this.departments[0].value
+        : '';
+      const hasPreferredDepartment = this.departments.some((department) => {
+        return department.value === preferredDepartment;
+      });
 
-      this.activeDepartmentKey = hasPreferredTab ? preferredKey : this.departmentTabs[0].value
+      this.activeDepartment = hasPreferredDepartment
+        ? preferredDepartment
+        : fallbackDepartment;
+    },
+    handleDepartmentChange(departmentValue) {
+      const nextDepartment = this.getDepartmentValue(departmentValue);
+
+      if (!nextDepartment || nextDepartment === this.activeDepartment) {
+        return;
+      }
+
+      this.activeDepartment = nextDepartment;
+      this.renderChart();
     },
     handleDepartmentSelect(tab) {
-      if (!tab || tab.value === this.activeDepartmentKey) {
-        return
+      if (!tab) {
+        return;
       }
 
-      this.activeDepartmentKey = tab.value
+      this.handleDepartmentChange(tab.value);
     },
     getECharts() {
-      if (typeof window !== 'undefined' && window.echarts && window.echarts.init) {
-        return window.echarts
+      if (
+        typeof window !== 'undefined' &&
+        window.echarts &&
+        window.echarts.init
+      ) {
+        return window.echarts;
       }
 
-      console.error('ECharts 未加载，请确认平台是否已注入 echarts')
-      return null
+      console.error('ECharts 未加载，请确认平台是否已注入 echarts');
+      return null;
     },
     initChart() {
       if (!this.$refs.chartRef) {
-        return
+        return;
       }
 
-      const echarts = this.getECharts()
+      const echarts = this.getECharts();
 
       if (!echarts) {
-        this.echartsUnavailable = true
-        return
+        this.echartsUnavailable = true;
+        return;
       }
 
       if (this.chart) {
-        this.chart.dispose()
-        this.chart = null
+        this.chart.dispose();
+        this.chart = null;
       }
 
-      this.echartsUnavailable = false
-      this.chart = echarts.init(this.$refs.chartRef)
-      this.renderChart()
+      this.echartsUnavailable = false;
+      this.chart = echarts.init(this.$refs.chartRef);
+      this.renderChart();
     },
     renderChart() {
       if (!this.chart) {
-        return
+        return;
       }
 
-      const option = this.getChartOption()
+      const option = this.getChartOption();
 
       if (!option) {
-        return
+        return;
       }
 
-      this.chart.setOption(option, true)
+      this.chart.setOption(option, true);
+      this.resizeChart();
     },
     resizeChart() {
       if (this.chart) {
-        this.chart.resize()
+        this.chart.resize();
+      }
+    },
+    initResizeObserver() {
+      if (typeof ResizeObserver === 'undefined' || !this.$el) {
+        return;
+      }
+
+      this.resizeObserver = new ResizeObserver(() => {
+        this.resizeChart();
+      });
+
+      this.resizeObserver.observe(this.$el);
+    },
+    destroyResizeObserver() {
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
       }
     },
     formatMetricValue(value, type) {
       if (value === null || value === undefined || value === '') {
-        return type === 'rate' ? '0%' : '0'
+        return type === 'rate' ? '0%' : '0';
       }
 
       if (type === 'rate') {
-        return typeof value === 'number' ? `${value}%` : String(value)
+        return typeof value === 'number' ? `${value}%` : String(value);
       }
 
-      return String(value)
+      return String(value);
     },
     getChartOption() {
-      const stats = this.monthlyData
+      const stats = this.monthlyData;
       const blueBarGradient = this.createVerticalGradient([
         { offset: 0, color: '#73dcff' },
         { offset: 0.22, color: '#4ec8ff' },
         { offset: 1, color: 'rgba(42, 128, 178, 0.28)' },
-      ])
+      ]);
       const yellowBarGradient = this.createVerticalGradient([
         { offset: 0, color: '#ffe176' },
         { offset: 0.24, color: '#ffd054' },
         { offset: 1, color: 'rgba(176, 139, 52, 0.26)' },
-      ])
+      ]);
 
       return {
         backgroundColor: 'transparent',
@@ -347,7 +549,6 @@ export default {
               fontWeight: 400,
               lineHeight: 10,
               textAlign: 'center',
-              fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, Microsoft YaHei, sans-serif',
             },
           },
         ],
@@ -357,12 +558,13 @@ export default {
           bottom: 16,
           left: 34,
         },
-        tooltip: Object.assign({
+        tooltip: {
           trigger: 'axis',
           axisPointer: {
             type: 'shadow',
           },
-        }, this.createTooltipConfig()),
+          ...this.createTooltipConfig(),
+        },
         xAxis: {
           type: 'category',
           data: stats.map((item) => item.month),
@@ -437,10 +639,10 @@ export default {
             })),
           },
         ],
-      }
+      };
     },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -459,26 +661,29 @@ export default {
   padding: 12px 10px 11px;
   overflow: hidden;
   color: #d9f3ff;
-  font-family: "Microsoft YaHei", Arial, sans-serif;
-  background:
-    linear-gradient(135deg, rgba(58, 136, 194, 0.16), rgba(5, 18, 38, 0.74) 42%, rgba(4, 24, 47, 0.86)),
+  font-family: 'SourceHanSansCN-Regular', 'Microsoft YaHei', Arial, sans-serif;
+  background: linear-gradient(
+      135deg,
+      rgba(58, 136, 194, 0.16),
+      rgba(5, 18, 38, 0.74) 42%,
+      rgba(4, 24, 47, 0.86)
+    ),
     rgba(6, 24, 48, 0.72);
   border: 1px solid rgba(92, 183, 245, 0.38);
   border-radius: 4px;
-  box-shadow:
-    0 0 22px rgba(23, 145, 231, 0.28),
+  box-shadow: 0 0 22px rgba(23, 145, 231, 0.28),
     inset 0 0 18px rgba(71, 178, 252, 0.16);
 }
 
 .occupancy-status-card.screen-card::before {
-  content: "";
+  content: '';
   position: absolute;
   left: -1px;
   top: 0;
   width: 347px;
   height: 51px;
   pointer-events: none;
-  background-image: url("../../../assets/编组 12@2x.png");
+  background-image: var(--occupancy-card-frame-bg);
   background-repeat: no-repeat;
   background-size: 347px 51px;
   border: 0;
@@ -516,7 +721,7 @@ export default {
 .dorm-card-title--occupancy .dorm-card-title__image {
   width: 115px;
   height: 15px;
-  background-image: url("../../../assets/人员入住情况@2x.png");
+  background-image: var(--occupancy-card-title-bg);
 }
 
 .occupancy-card {
@@ -540,9 +745,9 @@ export default {
   width: 100%;
   min-height: 38px;
   padding: 0 8px;
-  background-image: url("../../../assets/编组5.png");
+  background-image: var(--occupancy-card-metric-bg);
   background-repeat: no-repeat;
-  background-position: center;
+  /* background-position: center; */
   background-size: 294px 38px;
 }
 
@@ -566,7 +771,7 @@ export default {
   width: 38px;
   height: 12px;
   color: #ffffff;
-  font-family: "Source Han Sans CN", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: 'SourceHanSansCN-Regular', 'Microsoft YaHei', sans-serif;
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
@@ -577,7 +782,8 @@ export default {
 .occupancy-card__metric-row--primary .occupancy-card__metric-value {
   height: 20px;
   color: #e4eeff;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: 'SourceHanSansCN-Regular', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
@@ -611,7 +817,7 @@ export default {
   width: 50px;
   height: 12px;
   color: #ffffff;
-  font-family: "Source Han Sans CN", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-family: 'SourceHanSansCN-Regular', 'Microsoft YaHei', sans-serif;
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
@@ -622,7 +828,8 @@ export default {
 .occupancy-card__metric-row--secondary .occupancy-card__metric-value {
   height: 20px;
   color: #e4eeff;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: 'SourceHanSansCN-Regular', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
@@ -719,12 +926,12 @@ export default {
 }
 
 .occupancy-card__tabs.dorm-chart-tabs--wrap .dorm-chart-tabs__button::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url("../../../assets/组合2396.png");
+  background-image: var(--occupancy-card-tab-bg);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
@@ -740,14 +947,15 @@ export default {
   text-shadow: 0 0 6px rgba(255, 224, 121, 0.32);
 }
 
-.occupancy-card__tabs.dorm-chart-tabs--wrap .dorm-chart-tabs__button.is-active::before {
+.occupancy-card__tabs.dorm-chart-tabs--wrap
+  .dorm-chart-tabs__button.is-active::before {
   opacity: 1;
   filter: none;
 }
 
 .occupancy-text,
 .occupancy-tab .dorm-chart-tabs__button {
-  font-family: "Microsoft YaHei", sans-serif;
+  font-family: 'SourceHanSansCN-Regular', 'Microsoft YaHei', sans-serif;
 }
 
 .occupancy-card__chart {
@@ -757,7 +965,12 @@ export default {
 .dorm-base-echart {
   position: relative;
   width: 100%;
+  height: 100%;
   min-height: 56px;
+}
+
+.occupancy-card__chart.dorm-base-echart {
+  height: 58px;
 }
 
 .dorm-base-echart__canvas {
